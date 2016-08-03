@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %}Dorky{% endblock %}
+{% block body %}
+<script src="static/views/main.js"></script>
+
+<table class="table">
+<tr id="categories">
+<th>Categories:</th>
+</tr>
+</table>
+
+<div>
+    <button id="create_new" class="btn">Create Dork</button>
+</div>
+
+<table class="table" id="dorks">
+<tr>
+    <th></th>
+    <th>Query</th>
+    <th>Description</th>
+    <th>Category</th>
+    <th>Engine</th>
+    <th>Source</th>
+    <th>Enabled</th>
+    <th>Results</th>
+</tr>
+</table>
+
+<div id="result_modal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+{% endblock %}

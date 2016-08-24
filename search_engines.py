@@ -137,7 +137,7 @@ def google_search(cfg, query):
     results = []
     base_url = 'https://google.com/search?q='
 
-    my_proxy = random_proxy()
+    my_proxy = random_proxy(cfg)
     print "Using proxy: {0}".format(my_proxy)
     my_ua = random_ua()
     print "Using user-agent: {0}".format(my_ua)

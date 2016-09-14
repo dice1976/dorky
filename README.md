@@ -1,6 +1,6 @@
 # Documentation is a WIP.
 
-![Dorky Logo](/static/dork_logo.png?raw=true)
+![Dorky Logo](mgmt_ui/static/dork_logo.png?raw=true)
 
 Dorky is an automated search engine scraper that collects results into a mongo database for later use.
 

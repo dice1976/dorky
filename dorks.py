@@ -4,19 +4,23 @@ from datetime import datetime
 import pymongo
 from bson.objectid import ObjectId
 
+
 class DorkDB(object):
+
     def __init__(self, config):
         # Parse config.
         host = config.get('mongo', 'host')
         db_name = config.get('mongo', 'database')
         dork_coll = config.get('mongo', 'dork_coll')
         result_coll = config.get('mongo', 'result_coll')
+        blacklist_coll = config.get('mongo', 'blacklist_coll')
 
         # Connect.
         self.connection = pymongo.MongoClient(host)
         self.db = self.connection[db_name]
         self.dorks = self.db[dork_coll]
         self.results = self.db[result_coll]
+        self.blacklist = self.db[blacklist_coll]
 
         # Make sure we have the indexes we need.
         self.dorks.create_index('query')
@@ -60,6 +64,11 @@ class DorkDB(object):
     def update_dork(self, dbid, upd_data):
         self.dorks.update({'_id': ObjectId(dbid)}, {'$set': upd_data})
 
+    def delete_dork(self, dbid):
+        mongo_id = ObjectId(dbid)
+        self.results.delete_many({'dork': mongo_id})
+        self.dorks.delete_one({'_id': mongo_id})
+
     def set_dork_disabled(self, dbid, disabled):
         self.dorks.update({'_id': ObjectId(dbid)}, {'$set': {'disabled': disabled}})
 
@@ -81,3 +90,33 @@ class DorkDB(object):
         if added_after:
             query['date_added'] = {'$gte': added_after}
         return self.results.find(query)
+
+    def get_blacklist(self):
+        """ Get current blacklist from database.
+        """
+        return self.blacklist.find()
+
+    def add_blacklist(self, term, blacklist_type):
+        """ Add a blacklist term.
+        :param term: What do blacklist.
+        :param blacklist_type: Either 'url' or 'text'
+        """
+        if blacklist_type not in ['url', 'text']:
+            raise ValueError('Unsupported blacklist_type')
+        blacklist_entry = {'term': term, 'type': blacklist_type}
+        if not self.blacklist.find_one(blacklist_entry):
+            self.blacklist.insert(blacklist_entry)
+
+    def remove_blacklist(self, term, blacklist_type):
+        """ Remove a blacklist term.
+        :param term: which term to remove.
+        :param blacklist_type: Either 'url' or 'text'
+        """
+        if blacklist_type not in ['url', 'text']:
+            raise ValueError('Unsupported blacklist_type')
+        blacklist_entry = {'term': term, 'type': blacklist_type}
+        if self.blacklist.find_one(blacklist_entry):
+            self.blacklist.remove(blacklist_entry)
+        else:
+            raise ValueError('No matching blacklist entry.')
+

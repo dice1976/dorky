@@ -1,0 +1,6 @@
+.box        { margin-left: 10px; }
+.tagline    { color: #888; font-style: italic; margin: 0 0 20px 0; }
+.dorky_logo { float:right; margin-top: 15px; }
+#categories td { text-align: left; }
+#categories th { width: 8em; }
+#create_new    { float: right; margin-bottom: 1px; }

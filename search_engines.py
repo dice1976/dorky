@@ -1,9 +1,8 @@
 import json
 import time
-import re
 import urllib
+import urlparse
 import random
-
 from urllib import quote_plus
 
 import requests
@@ -159,7 +158,7 @@ def google_search(cfg, query):
             print "Waiting one hour and aborting..."
             time.sleep(60*60)
             return results
-        sp = BeautifulSoup(resp.text)
+        sp = BeautifulSoup(resp.text, "html.parser")
 
         result_set = sp.select('.g')
         if len(result_set) == 0:
@@ -177,6 +176,12 @@ def google_search(cfg, query):
             except IndexError as exc:
                 print "Skipping object."
                 continue
+
+            # Strip out the redirect from Google.
+            if 'google.com/url' in link_href or link_href.startswith('/interstitial?url='):
+                parsed_url_query = urlparse.urlparse(link_href).query
+                link_href = urlparse.parse_qs(parsed_url_query)['url'][0]
+
             link_title = link_obj[0].text
             results.append({
                 'engine_id': link_href,
@@ -190,9 +195,9 @@ def google_search(cfg, query):
         time.sleep(random.randint(40, 50))
     return results
 
+
 def change_keys(obj, convert):
-    """
-    Recursivly goes through the dictionnary obj and replaces keys with the convert function.
+    """ Recursively goes through the dictionary obj and replaces keys with the convert function.
     """
     if isinstance(obj, dict):
         new = {}
@@ -205,6 +210,7 @@ def change_keys(obj, convert):
     else:
         return obj
     return new
+
 
 def shodan_search(cfg, query):
     """ Perform a Shodan API query.

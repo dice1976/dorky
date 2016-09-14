@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block title %}Dorky{% endblock %}
+{% block body %}
+<script src="static/views/main.js"></script>
+
+<div class="row">
+    <div class="col-md-10">
+        <table>
+            <tr id="categories">
+                <th>Categories:</th>
+            </tr>
+        </table>
+    </div>
+    <div class="col-md-2">
+        <button id="create_new" class="btn btn-default">Create Dork</button>
+        <button id="show_blacklist" class="btn btn-default">Blacklist</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <table class="table" id="dorks">
+        <tr>
+            <th></th>
+            <th>Query</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Engine</th>
+            <th>Source</th>
+            <th>Enabled</th>
+            <th>Results</th>
+        </tr>
+        </table>
+    </div>
+</div>
+
+
+<div id="blacklist_modal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Blacklist</h4>
+            </div>
+            <div class="modal-body">
+                <div class="fluid-container">
+                    <div class="row">
+                        <label for="text_blacklist" class="col-md-6">Blacklisted Text</label>
+                        <label for="url_blacklist" class="col-md-6">Blacklisted URL Substrings</label>
+                    </div>
+                    <div class="row">
+                        <textarea id="text_blacklist" placeholder="One per line" class="col-md-6" rows="15" cols="50"></textarea>
+                        <textarea id="url_blacklist" placeholder="One per line" class="col-md-6" rows="15" cols="50"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save_blacklist" type="button" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div id="result_modal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" style="width: 50vw;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"></h4>
+            </div>
+            <div class="modal-body table-responsive">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+{% endblock %}

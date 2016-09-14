@@ -16,21 +16,23 @@ from jinja2 import Environment, FileSystemLoader
 
 from dorks import DorkDB
 
-def get_hostname(url):
-    return urlparse.urlparse(url).netloc
 
 class Dorky(object):
     def __init__(self):
         template_path = os.path.join(os.path.dirname(__file__), 'mgmt_ui', 'templates')
         self.jinja_env = Environment(loader=FileSystemLoader(template_path),
                                      autoescape=True)
+
+        get_hostname = lambda url: urlparse.urlparse(url).netloc
         self.jinja_env.filters['hostname'] = get_hostname
 
         self.url_map = Map([
             Rule('/', endpoint='main'),
             Rule('/disable', endpoint='disable'),
             Rule('/get', endpoint='get'),
-            Rule('/update', endpoint='update')
+            Rule('/update', endpoint='update'),
+            Rule('/delete', endpoint='delete'),
+            Rule('/edit_blacklist', endpoint='edit_blacklist')
         ])
         cfg = ConfigParser.ConfigParser()
         cfg.read('dorking.cfg')
@@ -41,20 +43,23 @@ class Dorky(object):
         return self.render_template('main.html')
 
     def on_disable(self, request):
+        """ Disable/enable dorks.
+        """
         dbid = request.form['dbid']
         disabled = True if request.form['status'] == 'true' else False
         print dbid, disabled
         try:
             self.storage.set_dork_disabled(dbid, disabled)
         except Exception as exc:
-            print exc
+            return Response(str(exc), status=500)
         return Response('OK')
 
     def on_update(self, request):
+        """ Editing/creating dorks.
+        """
         dork = request.form
         print dork
         old_dork = '_id' in dork
-        err = None
         if old_dork:
             did = dork['_id']
             try:
@@ -65,7 +70,7 @@ class Dorky(object):
                 self.storage.update_dork(did, new_dork)
             except Exception as exc:
                 print traceback.format_exc()
-                err = str(exc)
+                return Response(str(exc), status=500)
         else:
             try:
                 self.storage.add_dork(dork['query'],
@@ -75,11 +80,12 @@ class Dorky(object):
                   search_engine=dork['search_engine'])
             except Exception as exc:
                 print traceback.format_exc()
-                err = str(exc)
-
-        return Response(err if err else 'OK')
+                return Response(str(exc), status=500)
+        return Response('OK')
 
     def on_get(self, request):
+        """ Various getters.
+        """
         what = request.form['what']
         resp = {}
         if what == 'results':
@@ -89,9 +95,28 @@ class Dorky(object):
             dorks = list(self.storage.get_dorks())
             resp['categories'] = list(set([d['category'] for d in dorks]))
             resp['dorks'] = dorks
+        elif what == 'blacklist':
+            resp['blacklist'] = {'url': [], 'text': []}
+            for bl in self.storage.get_blacklist():
+                resp['blacklist'][bl['type']].append(bl['term'])
         else:
-            resp['error'] = 'Unknown '
+            resp['error'] = 'Unknown'
         return Response(json.dumps(resp, default=json_util.default), mimetype='application/json')
+
+    def on_delete(self, request):
+        """ Delete a dork and all its results.
+        """
+        dbid = request.form['dbid']
+        self.storage.delete_dork(dbid)
+        return Response("OK")
+
+    def on_edit_blacklist(self, request):
+        updates = json.loads(request.form['updates'])
+        for item in updates['add']:
+            self.storage.add_blacklist(item['term'], item['type'])
+        for item in updates['remove']:
+            self.storage.remove_blacklist(item['term'], item['type'])
+        return Response("OK")
 
     def error_404(self):
         response = self.render_template('404.html')
@@ -107,10 +132,10 @@ class Dorky(object):
         try:
             endpoint, values = adapter.match()
             return getattr(self, 'on_' + endpoint)(request, **values)
-        except NotFound, e:
+        except NotFound:
             return self.error_404()
-        except HTTPException, e:
-            return e
+        except HTTPException as exc:
+            return exc
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)

@@ -17,21 +17,15 @@ args = parser.parse_args()
 cfg = ConfigParser.ConfigParser()
 cfg.read('dorking.cfg')
 
-filter_terms = cfg.get('filter', 'block_strings').split('\n')
-filter_terms = filter(None, filter_terms)
-filter_urls = cfg.get('filter', 'block_urls').split('\n')
-filter_urls = filter(None, filter_urls)
-
-
-def ok_result(query, res):
+def ok_result(query, res, blacklist):
     """Check if a search result is OK or if it should be filtered."""
     # We check against all fields.
     check_text = ' '.join(str(res.values())).lower()
     if query in check_text:
         return False
-    if any([ft in check_text for ft in filter_terms]):
+    if any([ft in check_text for ft in blacklist['text']]):
         return False
-    if any([url in res['engine_id'] for url in filter_urls]):
+    if any([url in res['engine_id'] for url in blacklist['url']]):
         return False
     return True
 
@@ -56,6 +50,10 @@ search_engines = {
 
 storage = DorkDB(cfg)
 while True:
+    blacklist = {'url': set(), 'text': set()}
+    for entry in storage.get_blacklist():
+        blacklist[entry['type']].add(entry['term'])
+
     for i, dork in enumerate(storage.get_dorks()):
         if dork['disabled']:
             continue

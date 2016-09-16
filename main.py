@@ -7,7 +7,7 @@ import search_engines
 from dorks import DorkDB
 
 logging.basicConfig()
-log = logging.getLogger('dorking')
+log = logging.getLogger(name='dorking')
 log.setLevel(logging.DEBUG)
 
 parser = argparse.ArgumentParser(description='Automated dorking')
@@ -66,7 +66,7 @@ while True:
 
         query = dork['query']
         log.debug("Running: {0} ({1})".format(query, engine_name))
-        search_res = engine_details['search'](cfg, query)
+        search_res = engine_details['search'](cfg, query, blacklist)
         for res in search_res:
             if ok_result(dork['query'], res):
                 storage.add_result(dork['_id'], res['engine_id'], res['result'])

@@ -66,9 +66,9 @@ while True:
 
         query = dork['query']
         log.debug("Running: {0} ({1})".format(query, engine_name))
-        search_res = engine_details['search'](cfg, query, blacklist)
+        search_res = engine_details['search'](cfg, query)
         for res in search_res:
-            if ok_result(dork['query'], res):
+            if ok_result(dork['query'], res, blacklist):
                 storage.add_result(dork['_id'], res['engine_id'], res['result'])
 
     if args.once:
